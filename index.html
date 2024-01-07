@@ -121,7 +121,7 @@
                 await canvas.requestPointerLock();
             });
 
-            var socket = new WebSocket("ws://localhost:15555/ws");
+            var socket = new WebSocket("wss://gord1402.ddns.net:5786");
 
             var stage = 0;
 
@@ -188,7 +188,6 @@
             };
 
             socket.onerror = function(error) {
-            alert("Ошибка");
             };
         </script>
     </body>
