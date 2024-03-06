@@ -24,7 +24,7 @@
 </head>
 <body>
     <p><span id="input" style="width: 100%; min-height: 2em;"></span></p>
-    <button style="left:50%;position: relative;margin-left:-5%;width: 10%;height: 2em;" class="button" onclick="send();">Send</button>
+    <!-- <button style="left:50%;position: relative;margin-left:-5%;width: 10%;height: 2em;" class="button" onclick="send();">Send</button> -->
     <script>
         MathQuill = MathQuill.getInterface(1);
         var inputSpan = document.getElementById('input');
@@ -34,8 +34,18 @@
             }
           }
         });
+        var mainBut = webApp.MainButton;
+        mainBut.text = "Отправить";
+        mainBut.isVisible = true;
+        mainBut.isActive = true;
+        mainBut.show();
+        mainBut.enable();
+
+        mainBut.onClick(send);
+
         function send() {
             window.Telegram.WebApp.sendData(inputMathField.latex());
+            window.Telegram.WebApp.close();
         }
       </script>
 </body>
