@@ -1,194 +1,42 @@
-<html>
-    <head>
-    </head>
-    <body>
-        <canvas id="canvas"></canvas>
-        <script>
-            function parseURLParams(url) {
-                var queryStart = url.indexOf("?") + 1,
-                    queryEnd   = url.indexOf("#") + 1 || url.length + 1,
-                    query = url.slice(queryStart, queryEnd - 1),
-                    pairs = query.replace(/\+/g, " ").split("&"),
-                    parms = {}, i, n, v, nv;
-                if (query === url || query === "") return;
-                for (i = 0; i < pairs.length; i++) {
-                    nv = pairs[i].split("=", 2);
-                    n = decodeURIComponent(nv[0]);
-                    v = decodeURIComponent(nv[1]);
-                    if (!parms.hasOwnProperty(n)) parms[n] = [];
-                    parms[n].push(nv.length === 2 ? v : null);
-                }
-                return parms;
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="mathquill-0.10.1/mathquill.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="mathquill-0.10.1/mathquill.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Math editor</title>
+    <style>
+        .button {
+            border: none;
+            color: #fff;
+            padding: 0px 0;
+            border-radius: 4px;
+            background: #4070f4;
+            cursor: pointer;
+            transition: all 0.2s ease;
             }
-
-            let params = new URLSearchParams(location.search);
-
-            var uuid = params.get('uuid');
-
-
-            var full_heart = new Image();
-            full_heart.src = "full.png";
-            var half_heart = new Image();
-            half_heart.src = "half.png";
-            var container = new Image();
-            container.src = "container.png";
-
-
-
-            var canvas = document.getElementById("canvas");
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            var ctx = canvas.getContext('2d');
-            ctx.webkitImageSmoothingEnabled = false;
-            ctx.mozImageSmoothingEnabled = false;
-            ctx.imageSmoothingEnabled = false;
-
-            var health = 20;
-
-            //              jump   forward back  left   right  sprint sneak  dig
-            var controls = [false, false, false, false, false, false, false, false]
-
-            var mouse_delta_x = 0;
-            var mouse_delta_y = 0;
-
-            document.addEventListener('keydown', function(event) {
-                if (event.code == 'Space') {
-                    controls[0] = true;
-                }
-                else if(event.code == 'KeyW'){
-                    controls[1] = true;
-                }
-                else if(event.code == 'KeyS'){
-                    controls[2] = true;
-                }
-                else if(event.code == 'KeyA'){
-                    controls[3] = true;
-                }
-                else if(event.code == 'KeyD'){
-                    controls[4] = true;
-                }
-                else if(event.code == 'ShiftLeft'){
-                    controls[5] = true;
-                }
-                else if(event.code == 'ControlLeft'){
-                    controls[6] = true;
-                }
-            });
-
-            document.addEventListener('keyup', function(event) {
-                if (event.code == 'Space') {
-                    controls[0] = false;
-                }
-                else if(event.code == 'KeyW'){
-                    controls[1] = false;
-                }
-                else if(event.code == 'KeyS'){
-                    controls[2] = false;
-                }
-                else if(event.code == 'KeyA'){
-                    controls[3] = false;
-                }
-                else if(event.code == 'KeyD'){
-                    controls[4] = false;
-                }
-                else if(event.code == 'ShiftLeft'){
-                    controls[5] = false;
-                }
-                else if(event.code == 'ControlLeft'){
-                    controls[6] = false;
-                }
-            });
-
-            document.addEventListener('mousemove', function(event) {
-                mouse_delta_x -= event.movementX;
-                mouse_delta_y -= event.movementY;
-            });
-
-            document.addEventListener('mousedown', function(event) {
-                if (event.button == 0){
-                    controls[7] = true;
-                }
-            });
-
-            document.addEventListener('mouseup', function(event) {
-                if (event.button == 0){
-                    controls[7] = false;
-                }
-            });
-
-            canvas.addEventListener("click", async () => {
-                await canvas.requestPointerLock();
-            });
-
-            var socket = new WebSocket("wss://gord1402.ddns.net:5786");
-
-            var stage = 0;
-
-            socket.onopen = function() {
-                socket.send(uuid);
-            };
-
-            socket.onclose = function(event) {
-            if (event.wasClean) {
-                alert('Соединение закрыто');
-            } else {
-                alert('Обрыв соединения');
+            .button:hover {
+            background-color: #034bf1;
             }
-            };
-
-            socket.onmessage = function(event) {
-                if (stage == 0){
-                    if (event.data == 0) stage++;
-                    else {
-                        alert('Идентификатор вашей сессии истёк или некоректен!');
-                    }
-                    socket.send("" + window.innerWidth + " " + window.innerHeight);
-                }
-                else if (stage == 1){
-                    if (event.data == 0) stage++;
-                }
-                else if (stage == 2){
-
-                    createImageBitmap(event.data).then(imageBitmap=>{
-                        ctx.drawImage(imageBitmap,0,0);
-                        for (var i = 0;i < 10;i++){
-                            ctx.drawImage(container, i * 18 + 18, canvas.height - 18 * 2, 18, 18);
-                            if (health / 2 >= (i + 1)){
-                                ctx.drawImage(full_heart, i * 18 + 18, canvas.height - 18 * 2, 18, 18);
-                            }
-                            else if (health / 2 >= (i + 0.5)){
-                                ctx.drawImage(half_heart, i * 18 + 18, canvas.height - 18 * 2, 18, 18);
-                            }
-                        }
-                    })
-
-
-                    stage++;
-                    var bitmask = 0;
-                    if (controls[0]) bitmask = bitmask | (1 << 0);
-                    if (controls[1]) bitmask = bitmask | (1 << 1);
-                    if (controls[2]) bitmask = bitmask | (1 << 2);
-                    if (controls[3]) bitmask = bitmask | (1 << 3);
-                    if (controls[4]) bitmask = bitmask | (1 << 4);
-                    if (controls[5]) bitmask = bitmask | (1 << 5);
-                    if (controls[6]) bitmask = bitmask | (1 << 6);
-                    if (controls[7]) bitmask = bitmask | (1 << 7);
-
-                    socket.send("" + bitmask + "|" + mouse_delta_x + " " + mouse_delta_y);
-
-                    mouse_delta_x = 0;
-                    mouse_delta_y = 0;
-                }
-                else if (stage == 3){
-                    health = parseFloat(event.data);
-
-                    stage--;
-                }
-            };
-
-            socket.onerror = function(error) {
-            };
-        </script>
-    </body>
+    </style>
+</head>
+<body>
+    <p><span id="input" style="width: 100%; min-height: 2em;"></span></p>
+    <button style="left:50%;position: relative;margin-left:-5%;width: 10%;height: 2em;" class="button" onclick="send();">Send</button>
+    <script>
+        MathQuill = MathQuill.getInterface(1);
+        var inputSpan = document.getElementById('input');
+        var inputMathField = MathQuill.MathField(inputSpan, {
+          handlers: {
+            edit: function() {
+            }
+          }
+        });
+        function send() {
+            sendData(inputMathField.latex());
+        }
+      </script>
+</body>
 </html>
