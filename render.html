@@ -1,0 +1,24 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="mathquill-0.10.1/mathquill.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="mathquill-0.10.1/mathquill.js"></script>
+</head>
+<body>
+    <p><span id="render"></span></p>
+    <script>
+
+        function get(name){
+            if(name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search))
+                return decodeURIComponent(name[1]);
+        }
+
+        var MQ = MathQuill.getInterface(2);
+        var renderSpan = document.getElementById('render');
+        var mathField = MQ.MathField(renderSpan);
+        mathField.latex(get("expr"));
+    </script>
+</body>
+</html>
