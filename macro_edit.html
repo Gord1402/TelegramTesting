@@ -263,7 +263,10 @@
       const json = JSON.stringify(tree);
       console.log(tree);
       const compressed = btoa(unescape(encodeURIComponent(json)));
-      if (Telegram.WebApp) Telegram.WebApp.sendData(compressed);
+      if (Telegram.WebApp) {
+        Telegram.WebApp.sendData(compressed);
+        Telegram.WebApp.close();
+    }
       else alert("Telegram WebApp not available");
     }
   </script>
