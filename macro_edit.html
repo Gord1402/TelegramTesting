@@ -48,7 +48,6 @@
 <body>
   <div id="blocklyDiv"></div>
   <div id="controls">
-    <button onclick="sendToTelegram()">Send to Telegram</button>
   </div>
 
   <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
@@ -184,8 +183,8 @@
 
     Blockly.defineBlocksWithJsonArray([
       { "type": "send_message", "message0": "send message %1", "args0": [ { "type": "input_value", "name": "TEXT", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram message", "helpUrl": "" },
-      { "type": "send_photo", "message0": "send photo with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram photo", "helpUrl": "" },
-      { "type": "send_video", "message0": "send video with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram video", "helpUrl": "" },
+      { "type": "send_photo", "message0": "send photo with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram photo", "helpUrl": "" },
+      { "type": "send_video", "message0": "send video with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram video", "helpUrl": "" },
       { "type": "delay", "message0": "wait %1 seconds", "args0": [ { "type": "input_value", "name": "SECONDS", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Wait some seconds", "helpUrl": "" },
 
       { "type": "set_variable", "message0": "set variable %1 to %2", "args0": [ { "type": "field_input", "name": "VARNAME", "text": "var" }, { "type": "input_value", "name": "VALUE" } ], "previousStatement": null, "nextStatement": null, "colour": 330, "tooltip": "Set a variable", "helpUrl": "" },
@@ -257,6 +256,15 @@
       const topBlocks = workspace.getTopBlocks(true);
       return topBlocks.map(block => blockToTree(block));
     }
+
+    var mainBut = window.Telegram.WebApp.MainButton;
+    mainBut.text = "Отправить";
+    mainBut.isVisible = true;
+    mainBut.isActive = true;
+    mainBut.show();
+    mainBut.enable();
+
+    mainBut.onClick(sendToTelegram);
 
     function sendToTelegram() {
       const tree = workspaceToTree();
