@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telegram Block Code Editor</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/@blockly/field-date@10.0.1/dist/index.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #1e1e1e;
+      color: #e0e0e0;
+    }
+    #blocklyDiv {
+      flex: 1;
+      height: 100%;
+    }
+    #controls {
+      padding: 12px;
+      background-color: #2d2d2d;
+      border-top: 1px solid #444;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: center;
+    }
+    button {
+      padding: 10px 24px;
+      font-size: 16px;
+      border: none;
+      background-color: #30a8f2;
+      color: white;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #1b7fc3;
+    }
+  </style>
+</head>
+<body>
+  <div id="blocklyDiv"></div>
+  <div id="controls">
+    <button onclick="sendToTelegram()">Send to Telegram</button>
+  </div>
+
+  <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
+    <category name="Triggers" colour="100">
+      <block type="on_message"></block>
+      <block type="on_time"></block>
+    </category>
+    <category name="Messaging" colour="290">
+      <block type="send_message"></block>
+      <block type="send_photo"></block>
+      <block type="send_video"></block>
+      <block type="delay"></block>
+    </category>
+    <category name="Variables" colour="330">
+      <block type="set_variable"></block>
+      <block type="get_variable"></block>
+    </category>
+    <category name="Logic" colour="210">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+    </category>
+    <category name="Loops" colour="120">
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="controls_whileUntil"></block>
+    </category>
+    <category name="Text" colour="160">
+      <block type="text"></block>
+      <block type="text_print"></block>
+      <block type="text_join"></block>
+      <block type="text_length"></block>
+      <block type="text_isEmpty"></block>
+    </category>
+    <category name="Lists" categorystyle="list_category">
+        <block type="lists_create_with">
+          <mutation items="0"></mutation>
+        </block>
+        <block type="lists_create_with"></block>
+        <block type="lists_repeat">
+          <value name="NUM">
+            <shadow type="math_number">
+              <field name="NUM">5</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="lists_length"></block>
+        <block type="lists_isEmpty"></block>
+        <block type="lists_indexOf">
+          <value name="VALUE">
+            <block type="variables_get">
+              <field name="VAR">list</field>
+            </block>
+          </value>
+        </block>
+        <block type="lists_getIndex">
+          <value name="VALUE">
+            <block type="variables_get">
+              <field name="VAR">list</field>
+            </block>
+          </value>
+        </block>
+        <block type="lists_setIndex">
+          <value name="LIST">
+            <block type="variables_get">
+              <field name="VAR">list</field>
+            </block>
+          </value>
+        </block>
+        <block type="lists_getSublist">
+          <value name="LIST">
+            <block type="variables_get">
+              <field name="VAR">list</field>
+            </block>
+          </value>
+        </block>
+        <block type="lists_split">
+          <value name="DELIM">
+            <shadow type="text">
+              <field name="TEXT">,</field>
+            </shadow>
+          </value>
+        </block>
+        <block type="lists_sort"></block>
+        <block type="lists_reverse"></block>
+      </category>
+    <category name="Math" colour="230">
+      <block type="math_number">
+        <field name="NUM">0</field>
+      </block>
+      <block type="math_arithmetic"></block>
+    </category>
+    <category name="Web & AI" colour="200">
+      <block type="fetch_url"></block>
+      <block type="extract_meta"></block>
+      <block type="extract_text"></block>
+      <block type="llm_prompt"></block>
+    </category>
+    <category name="Date & Time" colour="20">
+      <block type="date_now"></block>
+      <block type="format_date"></block>
+      <block type="date_component"></block>
+      <block type="datetime_difference"></block>
+      <block type="pick_date"></block>
+    </category>
+  </xml>
+
+  <script>
+    // Configure Blockly for dark theme
+    Blockly.Themes.Dark = Blockly.Theme.defineTheme('dark', {
+      'base': Blockly.Themes.Classic,
+      'componentStyles': {
+        'workspaceBackgroundColour': '#1e1e1e',
+        'toolboxBackgroundColour': '#2d2d2d',
+        'toolboxForegroundColour': '#e0e0e0',
+        'flyoutBackgroundColour': '#252526',
+        'flyoutForegroundColour': '#e0e0e0',
+        'flyoutOpacity': 1,
+        'scrollbarColour': '#3a3a3a',
+        'scrollbarOpacity': 0.7,
+        'insertionMarkerColour': '#e0e0e0',
+        'insertionMarkerOpacity': 0.3,
+        'markerColour': '#30a8f2',
+        'cursorColour': '#30a8f2',
+        'selectedGlowColour': '#30a8f2',
+        'selectedGlowOpacity': 0.3
+      }
+    });
+
+    Blockly.defineBlocksWithJsonArray([
+      { "type": "send_message", "message0": "send message %1", "args0": [ { "type": "input_value", "name": "TEXT", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram message", "helpUrl": "" },
+      { "type": "send_photo", "message0": "send photo with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram photo", "helpUrl": "" },
+      { "type": "send_video", "message0": "send video with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram video", "helpUrl": "" },
+      { "type": "delay", "message0": "wait %1 seconds", "args0": [ { "type": "input_value", "name": "SECONDS", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Wait some seconds", "helpUrl": "" },
+
+      { "type": "set_variable", "message0": "set variable %1 to %2", "args0": [ { "type": "field_input", "name": "VARNAME", "text": "var" }, { "type": "input_value", "name": "VALUE" } ], "previousStatement": null, "nextStatement": null, "colour": 330, "tooltip": "Set a variable", "helpUrl": "" },
+      { "type": "get_variable", "message0": "get variable %1", "args0": [ { "type": "field_input", "name": "VARNAME", "text": "var" } ], "output": null, "colour": 330, "tooltip": "Get a variable", "helpUrl": "" },
+
+      { "type": "fetch_url", "message0": "fetch url %1", "args0": [ { "type": "input_value", "name": "URL", "check": "String" } ], "output": "String", "colour": 200, "tooltip": "Fetch HTML from URL", "helpUrl": "" },
+      { "type": "extract_meta", "message0": "get meta tag %1 from html %2", "args0": [ { "type": "input_value", "name": "META" }, { "type": "input_value", "name": "HTML" } ], "output": "String", "colour": 200, "tooltip": "Extract meta tag from HTML", "helpUrl": "" },
+      { "type": "extract_text", "message0": "get text by selector %1 from html %2", "args0": [ { "type": "input_value", "name": "SELECTOR" }, { "type": "input_value", "name": "HTML" } ], "output": "String", "colour": 200, "tooltip": "Extract text by CSS selector", "helpUrl": "" },
+
+      { "type": "llm_prompt", "message0": "ask LLM with prompt %1", "args0": [ { "type": "input_value", "name": "PROMPT", "check": "String" } ], "output": "String", "colour": 200, "tooltip": "Get response from language model", "helpUrl": "" },
+
+      { "type": "on_message", "message0": "on message contains %1", "args0": [ { "type": "field_input", "name": "TEXT", "text": "" } ], "nextStatement": null, "colour": 100, "tooltip": "Trigger when a message is received", "helpUrl": "" },
+      { "type": "on_time", "message0": "at time %1", "args0": [ { "type": "field_input", "name": "TIME", "text": "12:00" } ], "nextStatement": null, "colour": 100, "tooltip": "Trigger at specific time (HH:MM)", "helpUrl": "" },
+
+      { "type": "date_now", "message0": "get current datetime", "output": "String", "colour": 20, "tooltip": "Get the current date and time", "helpUrl": "" },
+      { "type": "format_date", "message0": "format datetime %1 with format %2", "args0": [ { "type": "input_value", "name": "DATETIME" }, { "type": "input_value", "name": "FORMAT" } ], "output": "String", "colour": 20, "tooltip": "Format datetime using given pattern", "helpUrl": "" },
+      { "type": "date_component", "message0": "get %1 from datetime %2", "args0": [ { "type": "field_dropdown", "name": "COMPONENT", "options": [["year","year"],["month","month"],["day","day"],["hour","hour"],["minute","minute"],["second","second"]] }, { "type": "input_value", "name": "DATETIME" } ], "output": "Number", "colour": 20, "tooltip": "Extract part of a datetime", "helpUrl": "" },
+      { "type": "datetime_difference", "message0": "difference in %1 between %2 and %3", "args0": [ { "type": "field_dropdown", "name": "UNIT", "options": [["days","days"],["hours","hours"],["minutes","minutes"],["seconds","seconds"]] }, { "type": "input_value", "name": "FROM" }, { "type": "input_value", "name": "TO" } ], "output": "Number", "colour": 20, "tooltip": "Calculate time difference", "helpUrl": "" },
+      { "type": "pick_date", "message0": "date %1", "args0": [ { "type": "field_date", "name": "DATE" } ], "output": "Date", "colour": 20, "tooltip": "Pick a date", "helpUrl": "" }
+    ]);
+
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: document.getElementById('toolbox'),
+      theme: Blockly.Themes.Dark,
+      zoom: {
+        controls: true,
+        wheel: true,
+        startScale: 1.0,
+        maxScale: 3,
+        minScale: 0.3,
+        scaleSpeed: 1.2
+      },
+      trashcan: true,
+      renderer: 'zelos',
+      move: {
+        scrollbars: {
+          horizontal: true,
+          vertical: true
+        },
+        drag: true,
+        wheel: true
+      }
+    });
+
+    function blockToTree(block) {
+      if (!block) return null;
+      const data = { type: block.type };
+      const inputs = {};
+      block.inputList.forEach(input => {
+        const name = input.name;
+        const target = input.connection && input.connection.targetBlock();
+        if (target) inputs[name] = blockToTree(target);
+      });
+      data.inputs = inputs;
+      const fields = {};
+      block.inputList.forEach(input => {
+        input.fieldRow.forEach(field => {
+          if (field.name && typeof field.getValue === 'function') {
+            fields[field.name] = field.getValue();
+          }
+        });
+      });
+      data.fields = fields;
+      if (block.getNextBlock()) data.next = blockToTree(block.getNextBlock());
+      return data;
+    }
+
+    function workspaceToTree() {
+      const topBlocks = workspace.getTopBlocks(true);
+      return topBlocks.map(block => blockToTree(block));
+    }
+
+    function sendToTelegram() {
+      const tree = workspaceToTree();
+      const json = JSON.stringify(tree);
+      console.log(tree);
+      const compressed = btoa(unescape(encodeURIComponent(json)));
+      if (Telegram.WebApp) Telegram.WebApp.sendData(compressed);
+      else alert("Telegram WebApp not available");
+    }
+  </script>
+</body>
+</html>
