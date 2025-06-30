@@ -242,10 +242,20 @@
       <block type="send_document"></block>
       <block type="send_stiker"></block>
       <block type="delay"></block>
+      <block type="get_variable">
+        <field name="VARNAME">message_text</field>
+      </block>
     </category>
     <category name="Variables" colour="330">
-      <block type="set_variable"></block>
-      <block type="get_variable"></block>
+      <block type="variables_set"></block>
+      <block type="variables_get"></block>
+    </category>
+    <category name="Procedures" colour="330">
+      <block type="procedures_callnoreturn"></block>
+      <block type="procedures_callreturn"></block>
+      <block type="procedures_defnoreturn"></block>
+      <block type="procedures_defreturn"></block>
+      <block type="procedures_ifreturn"></block>
     </category>
     <category name="Logic" colour="210">
       <block type="controls_if"></block>
@@ -325,6 +335,9 @@
         <field name="NUM">0</field>
       </block>
       <block type="math_arithmetic"></block>
+      <block type="math_random_float"></block>
+      <block type="math_random_int"></block>
+      <block type="math_round"></block>
     </category>
     <category name="Web & AI" colour="200">
       <block type="fetch_url"></block>
@@ -414,9 +427,41 @@
         wheel: true
       }
     });
-    function blockToTree(block) {
+
+
+function getVariableByName(workspace, name) {
+  const variables = workspace.getAllVariables();
+  return variables.find(v => v.name === name);
+}
+
+function getVariableIdByName(workspace, name) {
+  const variable = getVariableByName(workspace, name);
+  return variable ? variable.getId() : null;
+}
+
+function getVariableNameById(workspace, id) {
+  const variable = workspace.getVariableById(id);
+  return variable ? variable.name : null;
+}
+
+function blockToTree(block) {
   if (!block) return null;
   const data = { type: block.type };
+
+  if (block.saveExtraState) data.extra = block.saveExtraState();
+  
+  // Handle variables
+  if (block.type === 'variables_get' || block.type === 'variables_set') {
+    const varField = block.getField('VAR');
+    if (varField) {
+      const varId = varField.getValue();
+      const varName = getVariableNameById(workspace, varId);
+      if (varName) {
+        data.fields = { VAR: varName };
+      }
+    }
+  }
+  
   const inputs = {};
   block.inputList.forEach(input => {
     const name = input.name;
@@ -424,15 +469,17 @@
     if (target) inputs[name] = blockToTree(target);
   });
   data.inputs = inputs;
+  
   const fields = {};
   block.inputList.forEach(input => {
     input.fieldRow.forEach(field => {
-      if (field.name && typeof field.getValue === 'function') {
+      if (field.name && field.name !== 'VAR' && typeof field.getValue === 'function') {
         fields[field.name] = field.getValue();
       }
     });
   });
-  data.fields = fields;
+  data.fields = {...data.fields, ...fields};
+  
   if (block.getNextBlock()) data.next = blockToTree(block.getNextBlock());
   return data;
 }
@@ -477,19 +524,36 @@ function loadFromEncodedData(encodedData) {
       // Create a mapping of block IDs to connections
       const connectionDB = {};
       
+      // Helper function to get or create variable
+      function getOrCreateVariable(name) {
+        const variables = workspace.getAllVariables();
+        const existingVar = variables.find(v => v.name === name);
+        return existingVar || workspace.createVariable(name);
+      }
+      
       // Recursive function to process all blocks
       function processBlock(blockData, parentInput = null) {
         const block = workspace.newBlock(blockData.type);
         block.initSvg();
         block.render();
         
-        // Set fields
-        if (blockData.fields) {
+        // Handle variables specially
+        if (blockData.type === 'variables_get' || blockData.type === 'variables_set') {
+          if (blockData.fields && blockData.fields.VAR) {
+            const varName = blockData.fields.VAR;
+            const variable = getOrCreateVariable(varName);
+            block.getField('VAR').setValue(variable.getId());
+          }
+        }
+        // Handle regular fields
+        else if (blockData.fields) {
           Object.entries(blockData.fields).forEach(([name, value]) => {
             const field = block.getField(name);
             if (field) field.setValue(value);
           });
         }
+
+        if (blockData.extra) block.loadExtraState(blockData.extra);
         
         // Store block for connection
         connectionDB[block.id] = {
@@ -500,14 +564,12 @@ function loadFromEncodedData(encodedData) {
         
         // Connect to parent if this is a child block
         if (parentInput) {
-          console.log(block)
           const parentBlock = connectionDB[parentInput.parentId].block;
-          console.log(parentBlock, parentBlock.getInput(parentInput.name), parentInput.name, block.outputConnection)
-          if (block.outputConnection){
+          if (block.outputConnection && parentBlock.getInput(parentInput.name)) {
             parentBlock.getInput(parentInput.name).connection.connect(
               block.outputConnection
             );
-          } else if(block.previousConnection){
+          } else if (block.previousConnection && parentBlock.getInput(parentInput.name)) {
             parentBlock.getInput(parentInput.name).connection.connect(
               block.previousConnection
             );
@@ -516,21 +578,22 @@ function loadFromEncodedData(encodedData) {
         
         // Process all input blocks recursively
         if (blockData.inputs) {
-          if (blockData.type === 'controls_if'){
-            const elseIfCount = Object.keys(blockData.inputs).filter((key) => key.startsWith("IF")).length - 1;
-            console.log(blockData.inputs.ELSE?1:0)
-            block.loadExtraState({
+          if (!blockData.extra){
+            if (blockData.type === 'controls_if') {
+              const elseIfCount = Object.keys(blockData.inputs).filter((key) => key.startsWith("IF")).length - 1;
+              block.loadExtraState({
                 'elseIfCount': elseIfCount,
-                'hasElse': blockData.inputs.ELSE?1:0
+                'hasElse': blockData.inputs.ELSE ? 1 : 0
               });
-          } else if (blockData.type === 'text_join'){
-            block.loadExtraState({
+            } else if (blockData.type === 'text_join') {
+              block.loadExtraState({
                 'itemCount': Object.keys(blockData.inputs).length
               });
-          } else if (blockData.type === 'lists_create_with'){
-            block.loadExtraState({
+            } else if (blockData.type === 'lists_create_with') {
+              block.loadExtraState({
                 'itemCount': Object.keys(blockData.inputs).length
               });
+            }
           }
 
           Object.entries(blockData.inputs).forEach(([inputName, childData]) => {
@@ -606,6 +669,9 @@ function init() {
 
   generateBtn.addEventListener('click', () => {
     const tree = workspaceToTree();
+
+    console.log(tree)
+
     const json = JSON.stringify(tree);
     compressedData = btoa(unescape(encodeURIComponent(json)));
     updateUI();
@@ -660,6 +726,7 @@ function init() {
 
   // Initial UI update
   updateUI();
+  window.scrollTo(0,1);
   updateStatus('Ready');
 }
 
