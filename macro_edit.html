@@ -6,63 +6,222 @@
   <title>Block Code Editor</title>
   <script src="https://unpkg.com/blockly/blockly.min.js"></script>
   <script src="https://unpkg.com/@blockly/field-date@10.0.1/dist/index.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-tertiary: #2d2d2d;
+      --border-color: #444;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --accent-primary: #30a8f2;
+      --accent-hover: #1b7fc3;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --error: #F44336;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --transition: all 0.2s ease;
+    }
+
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Inter', sans-serif;
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background: #1e1e1e;
-      color: #e0e0e0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
     }
+
+    #header {
+      padding: 12px 20px;
+      background-color: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent-primary);
+    }
+
     #blocklyDiv {
       flex: 1;
       height: 100%;
     }
+
     #controls {
-      padding: 12px;
-      background-color: #2d2d2d;
-      border-top: 1px solid #444;
-      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+      padding: 12px 20px;
+      background-color: var(--bg-tertiary);
+      border-top: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .button-group {
+      display: flex;
       gap: 10px;
     }
+
     button {
-      padding: 10px 24px;
-      font-size: 16px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
       border: none;
-      background-color: #30a8f2;
+      background-color: var(--accent-primary);
       color: white;
-      border-radius: 6px;
-      font-weight: 600;
+      border-radius: var(--radius-md);
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
+
     button:hover {
-      background-color: #1b7fc3;
+      background-color: var(--accent-hover);
     }
+
+    button:disabled {
+      background-color: var(--bg-secondary);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    button.secondary:hover {
+      background-color: #333;
+    }
+
+    button.warning {
+      background-color: var(--warning);
+    }
+
+    button.warning:hover {
+      background-color: #e68a00;
+    }
+
     #copyNotification {
       position: fixed;
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #4CAF50;
+      background-color: var(--success);
       color: white;
       padding: 10px 20px;
-      border-radius: 4px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
       display: none;
       z-index: 1000;
+      font-weight: 500;
+    }
+
+    #status {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success);
+    }
+
+    #share-section {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #share-url {
+      padding: 8px 12px;
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: monospace;
+      font-size: 13px;
+      min-width: 200px;
+      flex: 1;
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
     }
   </style>
 </head>
 <body>
-  <div id="blocklyDiv"></div>
-  <div id="controls">
-    <button id="generateBtn">Generate Code</button>
-    <button id="copyBtn" disabled>Copy</button>
+  <div id="header">
+    <h1>Block Code Editor</h1>
+    <div id="status">
+      <div id="status-dot"></div>
+      <span id="status-text">Ready</span>
+    </div>
   </div>
+  
+  <div id="blocklyDiv"></div>
+  
+  <div id="controls">
+    <div class="button-group">
+      <button id="loadBtn" class="secondary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        Load
+      </button>
+      <button id="clearBtn" class="secondary warning">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        Clear
+      </button>
+    </div>
+    
+    <div id="share-section">
+      <input type="text" id="share-url" readonly placeholder="Shareable URL will appear here">
+      <button id="copyUrlBtn" class="secondary" disabled>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    
+    <div class="button-group">
+      <button id="generateBtn">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        Generate Code
+      </button>
+      <button id="copyBtn" disabled>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+        Copy
+      </button>
+    </div>
+  </div>
+
   <div id="copyNotification">Copied to clipboard!</div>
 
   <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
@@ -243,61 +402,219 @@
         wheel: true
       }
     });
-
     function blockToTree(block) {
-      if (!block) return null;
-      const data = { type: block.type };
-      const inputs = {};
-      block.inputList.forEach(input => {
-        const name = input.name;
-        const target = input.connection && input.connection.targetBlock();
-        if (target) inputs[name] = blockToTree(target);
-      });
-      data.inputs = inputs;
-      const fields = {};
-      block.inputList.forEach(input => {
-        input.fieldRow.forEach(field => {
-          if (field.name && typeof field.getValue === 'function') {
-            fields[field.name] = field.getValue();
-          }
-        });
-      });
-      data.fields = fields;
-      if (block.getNextBlock()) data.next = blockToTree(block.getNextBlock());
-      return data;
-    }
-
-    function workspaceToTree() {
-      const topBlocks = workspace.getTopBlocks(true);
-      return topBlocks.map(block => blockToTree(block));
-    }
-
-    let compressedData = null;
-    const generateBtn = document.getElementById('generateBtn');
-    const copyBtn = document.getElementById('copyBtn');
-    const copyNotification = document.getElementById('copyNotification');
-
-    generateBtn.addEventListener('click', () => {
-      const tree = workspaceToTree();
-      const json = JSON.stringify(tree);
-      console.log(tree);
-      compressedData = btoa(unescape(encodeURIComponent(json)));
-      copyBtn.disabled = false;
-      copyBtn.textContent = "Copy Code";
-    });
-
-    copyBtn.addEventListener('click', () => {
-      if (compressedData) {
-        navigator.clipboard.writeText(compressedData).then(() => {
-          copyNotification.style.display = 'block';
-          setTimeout(() => {
-            copyNotification.style.display = 'none';
-          }, 2000);
-        }).catch(err => {
-          console.error('Failed to copy: ', err);
-        });
+  if (!block) return null;
+  const data = { type: block.type };
+  const inputs = {};
+  block.inputList.forEach(input => {
+    const name = input.name;
+    const target = input.connection && input.connection.targetBlock();
+    if (target) inputs[name] = blockToTree(target);
+  });
+  data.inputs = inputs;
+  const fields = {};
+  block.inputList.forEach(input => {
+    input.fieldRow.forEach(field => {
+      if (field.name && typeof field.getValue === 'function') {
+        fields[field.name] = field.getValue();
       }
     });
+  });
+  data.fields = fields;
+  if (block.getNextBlock()) data.next = blockToTree(block.getNextBlock());
+  return data;
+}
+
+function workspaceToTree() {
+  const topBlocks = workspace.getTopBlocks(true);
+  return topBlocks.map(block => blockToTree(block));
+}
+
+function updateStatus(message, type = 'info') {
+  const statusText = document.getElementById('status-text');
+  const statusDot = document.getElementById('status-dot');
+  
+  statusText.textContent = message;
+  
+  const colors = {
+    'success': '#4CAF50',
+    'error': '#F44336',
+    'warning': '#FF9800',
+    'info': '#a0a0a0'
+  };
+  statusDot.style.backgroundColor = colors[type] || colors.info;
+}
+
+function showNotification(message, duration = 2000) {
+  const notification = document.getElementById('copyNotification');
+  notification.textContent = message;
+  notification.style.display = 'block';
+  setTimeout(() => {
+    notification.style.display = 'none';
+  }, duration);
+}
+
+function loadFromEncodedData(encodedData) {
+  try {
+    const json = decodeURIComponent(escape(atob(encodedData)));
+    const tree = JSON.parse(json);
+    
+    workspace.clear();
+    
+    if (Array.isArray(tree)) {
+      // Create a mapping of block IDs to connections
+      const connectionDB = {};
+      
+      // First pass: create all blocks without connections
+      tree.forEach(blockData => {
+        const block = workspace.newBlock(blockData.type);
+        block.initSvg();
+        block.render();
+        
+        // Set fields
+        if (blockData.fields) {
+          Object.entries(blockData.fields).forEach(([name, value]) => {
+            const field = block.getField(name);
+            if (field) field.setValue(value);
+          });
+        }
+        
+        // Store block for connection
+        connectionDB[block.id] = {
+          block: block,
+          inputs: blockData.inputs || {},
+          next: blockData.next
+        };
+      });
+      
+      // Second pass: connect blocks
+      Object.values(connectionDB).forEach(entry => {
+        const { block, inputs, next } = entry;
+        
+        // Connect inputs
+        Object.entries(inputs).forEach(([inputName, childData]) => {
+          if (childData && connectionDB[childData.id]) {
+            const childBlock = connectionDB[childData.id].block;
+            block.getInput(inputName).connection.connect(
+              childBlock.outputConnection
+            );
+          }
+        });
+        
+        // Connect next block
+        if (next && connectionDB[next.id]) {
+          const nextBlock = connectionDB[next.id].block;
+          block.nextConnection.connect(nextBlock.previousConnection);
+        }
+      });
+    }
+    
+    updateStatus('Workspace loaded successfully', 'success');
+    return true;
+  } catch (error) {
+    console.error('Error loading from encoded data:', error);
+    updateStatus('Error loading data', 'error');
+    return false;
+  }
+}
+
+
+function checkUrlForData() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const dataParam = urlParams.get('data');
+  
+  if (dataParam) {
+    loadFromEncodedData(dataParam);
+  }
+}
+
+function generateShareUrl() {
+  const tree = workspaceToTree();
+  const json = JSON.stringify(tree);
+  const compressedData = btoa(unescape(encodeURIComponent(json)));
+  return `${window.location.origin}${window.location.pathname}?data=${compressedData}`;
+}
+
+function updateUI() {
+  const tree = workspaceToTree();
+  const hasBlocks = tree.length > 0;
+  
+  document.getElementById('copyBtn').disabled = !hasBlocks;
+  document.getElementById('share-url').value = hasBlocks ? generateShareUrl() : '';
+  document.getElementById('copyUrlBtn').disabled = !hasBlocks;
+}
+
+function init() {
+    checkUrlForData();
+  
+  let compressedData = null;
+  const generateBtn = document.getElementById('generateBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const copyUrlBtn = document.getElementById('copyUrlBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const loadBtn = document.getElementById('loadBtn');
+  const copyNotification = document.getElementById('copyNotification');
+
+  generateBtn.addEventListener('click', () => {
+    const tree = workspaceToTree();
+    const json = JSON.stringify(tree);
+    compressedData = btoa(unescape(encodeURIComponent(json)));
+    updateUI();
+    showNotification('Code generated successfully');
+  });
+
+  copyBtn.addEventListener('click', () => {
+    if (compressedData) {
+      navigator.clipboard.writeText(compressedData).then(() => {
+        showNotification('Copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        showNotification('Failed to copy', 3000);
+      });
+    }
+  });
+
+  copyUrlBtn.addEventListener('click', () => {
+    const shareUrl = generateShareUrl();
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showNotification('URL copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy URL: ', err);
+        showNotification('Failed to copy URL', 3000);
+      });
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear the workspace?')) {
+      workspace.clear();
+      compressedData = null;
+      updateUI();
+      updateStatus('Workspace cleared', 'warning');
+    }
+  });
+
+  loadBtn.addEventListener('click', () => {
+    const userInput = prompt('Paste your encoded block data:');
+    if (userInput) {
+      if (loadFromEncodedData(userInput)) {
+        updateUI();
+      }
+    }
+  });
+
+  // Update UI when workspace changes
+  workspace.addChangeListener(() => {
+    updateUI();
+  });
+
+  // Initial UI update
+  updateUI();
+  updateStatus('Ready');
+}
+
+window.addEventListener('load', init);
   </script>
 </body>
 </html>
