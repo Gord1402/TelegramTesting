@@ -465,8 +465,8 @@ function loadFromEncodedData(encodedData) {
       // Create a mapping of block IDs to connections
       const connectionDB = {};
       
-      // First pass: create all blocks without connections
-      tree.forEach(blockData => {
+      // Recursive function to process all blocks
+      function processBlock(blockData, parentInput = null) {
         const block = workspace.newBlock(blockData.type);
         block.initSvg();
         block.render();
@@ -485,27 +485,64 @@ function loadFromEncodedData(encodedData) {
           inputs: blockData.inputs || {},
           next: blockData.next
         };
-      });
-      
-      // Second pass: connect blocks
-      Object.values(connectionDB).forEach(entry => {
-        const { block, inputs, next } = entry;
         
-        // Connect inputs
-        Object.entries(inputs).forEach(([inputName, childData]) => {
-          if (childData && connectionDB[childData.id]) {
-            const childBlock = connectionDB[childData.id].block;
-            block.getInput(inputName).connection.connect(
-              childBlock.outputConnection
+        // Connect to parent if this is a child block
+        if (parentInput) {
+          console.log(block)
+          const parentBlock = connectionDB[parentInput.parentId].block;
+          console.log(parentBlock, parentBlock.getInput(parentInput.name), parentInput.name, block.outputConnection)
+          if (block.outputConnection){
+            parentBlock.getInput(parentInput.name).connection.connect(
+              block.outputConnection
+            );
+          } else if(block.previousConnection){
+            parentBlock.getInput(parentInput.name).connection.connect(
+              block.previousConnection
             );
           }
-        });
+        }
         
-        // Connect next block
-        if (next && connectionDB[next.id]) {
-          const nextBlock = connectionDB[next.id].block;
+        // Process all input blocks recursively
+        if (blockData.inputs) {
+          if (blockData.type === 'controls_if'){
+            const elseIfCount = Object.keys(blockData.inputs).filter((key) => key.startsWith("IF")).length - 1;
+            console.log(blockData.inputs.ELSE?1:0)
+            block.loadExtraState({
+                'elseIfCount': elseIfCount,
+                'hasElse': blockData.inputs.ELSE?1:0
+              });
+          } else if (blockData.type === 'text_join'){
+            block.loadExtraState({
+                'itemCount': Object.keys(blockData.inputs).length
+              });
+          } else if (blockData.type === 'lists_create_with'){
+            block.loadExtraState({
+                'itemCount': Object.keys(blockData.inputs).length
+              });
+          }
+
+          Object.entries(blockData.inputs).forEach(([inputName, childData]) => {
+            if (childData) {
+              processBlock(childData, {
+                parentId: block.id,
+                name: inputName
+              });
+            }
+          });
+        }
+        
+        // Process next block
+        if (blockData.next) {
+          const nextBlock = processBlock(blockData.next);
           block.nextConnection.connect(nextBlock.previousConnection);
         }
+        
+        return block;
+      }
+      
+      // Process all root blocks
+      tree.forEach(rootBlockData => {
+        processBlock(rootBlockData);
       });
     }
     
