@@ -64,7 +64,7 @@
       border-top: 1px solid var(--border-color);
       box-shadow: var(--shadow);
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: center;
       gap: 12px;
     }
@@ -168,6 +168,12 @@
       width: 16px;
       height: 16px;
     }
+
+  @media screen and (max-width: 779px) {
+    .hide-mobile {
+        display: none !important;
+    }
+  }
   </style>
 </head>
 <body>
@@ -182,7 +188,7 @@
   <div id="blocklyDiv"></div>
   
   <div id="controls">
-    <div class="button-group">
+    <div class="button-group hide-mobile">
       <button id="loadBtn" class="secondary">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -197,7 +203,7 @@
       </button>
     </div>
     
-    <div id="share-section">
+    <div id="share-section" class="hide-mobile">
       <input type="text" id="share-url" readonly placeholder="Shareable URL will appear here">
       <button id="copyUrlBtn" class="secondary" disabled>
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
