@@ -233,6 +233,8 @@
       <block type="send_message"></block>
       <block type="send_photo"></block>
       <block type="send_video"></block>
+      <block type="send_document"></block>
+      <block type="send_stiker"></block>
       <block type="delay"></block>
     </category>
     <category name="Variables" colour="330">
@@ -330,6 +332,7 @@
       <block type="date_component"></block>
       <block type="datetime_difference"></block>
       <block type="pick_date"></block>
+      <block type="day_of_week"></block>
     </category>
   </xml>
 
@@ -359,6 +362,8 @@
       { "type": "send_message", "message0": "send message %1", "args0": [ { "type": "input_value", "name": "TEXT", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram message", "helpUrl": "" },
       { "type": "send_photo", "message0": "send photo with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram photo", "helpUrl": "" },
       { "type": "send_video", "message0": "send video with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram video", "helpUrl": "" },
+      { "type": "send_document", "message0": "send document with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram document", "helpUrl": "" },
+      { "type": "send_stiker", "message0": "send stiker with id: %1", "args0": [ { "type": "input_value", "name": "ID", "check": "String" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Send a Telegram sticker", "helpUrl": "" },
       { "type": "delay", "message0": "wait %1 seconds", "args0": [ { "type": "input_value", "name": "SECONDS", "check": "Number" } ], "previousStatement": null, "nextStatement": null, "colour": 290, "tooltip": "Wait some seconds", "helpUrl": "" },
 
       { "type": "set_variable", "message0": "set variable %1 to %2", "args0": [ { "type": "field_input", "name": "VARNAME", "text": "var" }, { "type": "input_value", "name": "VALUE" } ], "previousStatement": null, "nextStatement": null, "colour": 330, "tooltip": "Set a variable", "helpUrl": "" },
@@ -377,7 +382,8 @@
       { "type": "format_date", "message0": "format datetime %1 with format %2", "args0": [ { "type": "input_value", "name": "DATETIME" }, { "type": "input_value", "name": "FORMAT" } ], "output": "String", "colour": 20, "tooltip": "Format datetime using given pattern", "helpUrl": "" },
       { "type": "date_component", "message0": "get %1 from datetime %2", "args0": [ { "type": "field_dropdown", "name": "COMPONENT", "options": [["year","year"],["month","month"],["day","day"],["hour","hour"],["minute","minute"],["second","second"]] }, { "type": "input_value", "name": "DATETIME" } ], "output": "Number", "colour": 20, "tooltip": "Extract part of a datetime", "helpUrl": "" },
       { "type": "datetime_difference", "message0": "difference in %1 between %2 and %3", "args0": [ { "type": "field_dropdown", "name": "UNIT", "options": [["days","days"],["hours","hours"],["minutes","minutes"],["seconds","seconds"]] }, { "type": "input_value", "name": "FROM" }, { "type": "input_value", "name": "TO" } ], "output": "Number", "colour": 20, "tooltip": "Calculate time difference", "helpUrl": "" },
-      { "type": "pick_date", "message0": "date %1", "args0": [ { "type": "field_date", "name": "DATE" } ], "output": "Date", "colour": 20, "tooltip": "Pick a date", "helpUrl": "" }
+      { "type": "pick_date", "message0": "date %1", "args0": [ { "type": "field_date", "name": "DATE" } ], "output": "Date", "colour": 20, "tooltip": "Pick a date", "helpUrl": "" },
+      {"type": "day_of_week", "message0": "get day of week from %1", "args0": [ {"type": "input_value", "name": "DATETIME", "check": "String" }], "output": "String", "colour": 20, "tooltip": "Get the day of week (e.g. Monday, Tuesday) from a datetime", "helpUrl": "" }
     ]);
 
     const workspace = Blockly.inject('blocklyDiv', {
